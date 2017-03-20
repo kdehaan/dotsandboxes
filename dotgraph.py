@@ -6,8 +6,11 @@ class Dotgraph():
         self.elements = dict()
         self.elemValue = dict()
         self.elemType = dict()
+        self.list_tiles = list()
+        self.list_lines = list()
         self.i = 0
         self.j = 0
+        self.filled_tiles = 0
 
     def add_element(self, key):
         if key in self.elements:
@@ -20,6 +23,10 @@ class Dotgraph():
 
     def set_type(self, key, elemtype):
         self.elemType[key] = elemtype
+        if elemtype == "tile":
+            self.list_tiles.append(key)
+        else:
+            self.list_lines.append(key)
 
     def get_type(self, key):
         return self.elemType[key]
@@ -57,6 +64,20 @@ class Dotgraph():
             filled = filled + self.get_value(border)
         return filled
 
+    def check_filled(self):
+        if (self.i-1)*(self.j-1) == self.filled_tiles:
+            return True
+        return False
+
+    def check_score(self, player_one, player_two):
+        p1score = 0
+        p2score = 0
+        for item in self.list_tiles:
+            if self.elemValue[item] == player_one:
+                p1score = p1score + 1
+            else:
+                p2score = p2score + 1
+        return [p1score, p2score]
 
 def create_board(idots, jdots):
     board = Dotgraph()

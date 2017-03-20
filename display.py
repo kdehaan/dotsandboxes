@@ -31,6 +31,7 @@ class Display(Frame):
         for n in self.gboard.neighbours(tag):
             if self.gboard.filled_borders(n) == 4:
                 additionalTurn = True
+                self.gboard.filled_tiles = self.gboard.filled_tiles + 1
                 print('filled ', n)
                 i = int(n[4])
                 j = int(n[5])
@@ -39,6 +40,16 @@ class Display(Frame):
                 self.gboard.set_value(n, self.player) #fill tile with whoever did it
         if not additionalTurn:
             self.switch_player()
+        if self.gboard.check_filled():
+            print('board is filled')
+            score = self.gboard.check_score('one', 'two')
+            if score[0] > score[1]:
+                print('Player One wins with a score of',
+                 score[0], 'to', score[1])
+            else:
+                print('Player Two wins with a score of',
+                 score[1], 'to', score[0])
+
 
 
         self.canvas.itemconfig("current", fill="black")
