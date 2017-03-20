@@ -7,17 +7,27 @@ class RandomAi():
     def play(self, gboard):
         if gboard.three_tiles:
             tile = gboard.three_tiles.pop()
-            for border in gboard.neighbours(tile):
+            borderlist = gboard.neighbours(tile)
+            random.shuffle(borderlist)
+            for border in borderlist:
                 if gboard.get_value(border) is not 1:
                     return border
         elif gboard.oneorzero_tiles:
             tile = gboard.oneorzero_tiles.pop()
-            for border in gboard.neighbours(tile):
+            borderlist = gboard.neighbours(tile)
+            random.shuffle(borderlist)
+            for border in borderlist:
                 if gboard.get_value(border) is not 1:
-                    return border
+                    otherTile = gboard.other_tile(tile, border)
+                    if otherTile == None:
+                        return border
+                    if otherTile not in gboard.two_tiles:
+                        return border
         elif gboard.two_tiles:
             tile = gboard.two_tiles.pop()
-            for border in gboard.neighbours(tile):
+            borderlist = gboard.neighbours(tile)
+            random.shuffle(borderlist)
+            for border in borderlist:
                 if gboard.get_value(border) is not 1:
                     return border
         return None

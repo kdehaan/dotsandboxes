@@ -32,6 +32,12 @@ class Dotgraph():
         else:
             self.list_lines.append(key)
 
+    def other_tile(self, tile, edge):
+        for item in self.neighbours(edge):
+            if item is not tile:
+                return item
+        return None
+
     def get_type(self, key):
         return self.elemType[key]
 

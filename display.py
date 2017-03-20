@@ -28,8 +28,18 @@ class Display(Frame):
     def do(self, event, tag, gametype):
         # print(tag)
         # print(self.gboard.neighbours(tag))
-        self.update_board(tag)
-        if gametype == 'oneplayer':
+        if gametype != 'noplayer':
+            self.update_board(tag)
+        if gametype == 'noplayer':
+            while self.player == 'one':
+                line = self.AI.play(self.gboard)
+                if not line:
+                    print("no possible moves")
+                    return
+                self.update_board(line)
+                self.canvas.itemconfig(line, fill="black")
+                self.canvas.itemconfig(line, tags=("taken"))
+        if gametype == 'oneplayer' or gametype == 'noplayer':
             while self.player == 'two':
                 line = self.AI.play(self.gboard)
                 if not line:
