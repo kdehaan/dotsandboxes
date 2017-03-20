@@ -11,6 +11,9 @@ class Dotgraph():
         self.i = 0
         self.j = 0
         self.filled_tiles = 0
+        self.three_tiles = set()
+        self.two_tiles = set()
+        self.oneorzero_tiles = set()
 
     def add_element(self, key):
         if key in self.elements:
@@ -25,6 +28,7 @@ class Dotgraph():
         self.elemType[key] = elemtype
         if elemtype == "tile":
             self.list_tiles.append(key)
+            self.oneorzero_tiles.add(key)
         else:
             self.list_lines.append(key)
 
@@ -62,6 +66,14 @@ class Dotgraph():
         filled = 0
         for border in self.neighbours(key):
             filled = filled + self.get_value(border)
+        if filled == 2:
+            self.two_tiles.add(key)
+            self.oneorzero_tiles.discard(key)
+        elif filled == 3:
+            self.three_tiles.add(key)
+            self.two_tiles.discard(key)
+        elif filled == 4:
+            self.three_tiles.discard(key)
         return filled
 
     def check_filled(self):
