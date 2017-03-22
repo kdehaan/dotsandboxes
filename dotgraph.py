@@ -82,6 +82,7 @@ class Dotgraph():
             self.three_tiles.discard(key)
         return filled
 
+
     def check_filled(self):
         if (self.i-1)*(self.j-1) == self.filled_tiles:
             return True

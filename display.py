@@ -6,8 +6,9 @@ class Display(Frame):
     def __init__(self, master, gboard):
         self.player = 'one'
         self.currentcolour = 'blue'
-        self.gametype = 'oneplayer'
-        self.AI = RandomAi()
+        self.gametype = 'twoplayer'
+        self.AI1 = RandomAi()
+        self.AI2 = RandomAi()
         self.gboard = gboard
         self.frame = Frame(master)
         self.frame.pack(fill="both", expand=True)
@@ -25,29 +26,57 @@ class Display(Frame):
             self.player = 'one'
             self.currentcolour = 'blue'
 
+    def view_bots(self, AI1, AI2):
+        print("got here")
+        gameRunning = True
+        while gameRunning == True:
+            while self.player == 'one':
+                line = AI1.play(self.gboard)
+                if not line:
+                    print("no possible moves")
+                    gameRunning = False
+                    break
+                else:
+                    self.update_board(line)
+                    self.canvas.itemconfig(line, fill="black")
+                    self.canvas.itemconfig(line, tags=("taken"))
+                    self.canvas.update_idletasks()
+            while self.player == 'two':
+                line = AI2.play(self.gboard)
+                if not line:
+                    print("no possible moves")
+                    gameRunning = False
+                    break
+                else:
+                    self.update_board(line)
+                    self.canvas.itemconfig(line, fill="black")
+                    self.canvas.itemconfig(line, tags=("taken"))
+                    self.canvas.update_idletasks()
+
+
     def do(self, event, tag, gametype):
         # print(tag)
         # print(self.gboard.neighbours(tag))
         if gametype != 'noplayer':
             self.update_board(tag)
-        if gametype == 'noplayer':
-            while self.player == 'one':
-                line = self.AI.play(self.gboard)
-                if not line:
-                    print("no possible moves")
-                    return
-                self.update_board(line)
-                self.canvas.itemconfig(line, fill="black")
-                self.canvas.itemconfig(line, tags=("taken"))
-        if gametype == 'oneplayer' or gametype == 'noplayer':
-            while self.player == 'two':
-                line = self.AI.play(self.gboard)
-                if not line:
-                    print("no possible moves")
-                    return
-                self.update_board(line)
-                self.canvas.itemconfig(line, fill="black")
-                self.canvas.itemconfig(line, tags=("taken"))
+        # if gametype == 'noplayer':
+        #     while self.player == 'one':
+        #         line = self.AI.play(self.gboard)
+        #         if not line:
+        #             print("no possible moves")
+        #             return
+        #         self.update_board(line)
+        #         self.canvas.itemconfig(line, fill="black")
+        #         self.canvas.itemconfig(line, tags=("taken"))
+        # if gametype == 'oneplayer' or gametype == 'noplayer':
+        #     while self.player == 'two':
+        #         line = self.AI.play(self.gboard)
+        #         if not line:
+        #             print("no possible moves")
+        #             return
+        #         self.update_board(line)
+        #         self.canvas.itemconfig(line, fill="black")
+        #         self.canvas.itemconfig(line, tags=("taken"))
 
 
     def update_board(self, tag):
@@ -94,6 +123,11 @@ class Display(Frame):
     #
 
     def initUI(self, xdots=5, ydots=5):
+        starttag = "startbutton"
+        self.canvas.create_rectangle(130, 130,
+        180, 180, fill="red", tags=starttag)
+        startcallback = lambda event, tag=starttag: self.view_bots(self.AI1, self.AI2)
+        self.canvas.tag_bind(starttag, '<Button-1>', startcallback)
         for i in range(xdots):
             for j in range(ydots):
                 self.canvas.create_rectangle(i*100+50, j*100+50, i*100+60, j*100+60,

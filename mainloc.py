@@ -4,7 +4,7 @@ from tkinter import Tk
 
 
 def main():
-    gboard = create_board(5, 4)
+    gboard = create_board(10, 7)
     root=Tk()
     app=Display(root, gboard)
     root.mainloop()
