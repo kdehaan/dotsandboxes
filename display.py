@@ -6,9 +6,9 @@ class Display(Frame):
     def __init__(self, master, gboard):
         self.player = 'one'
         self.currentcolour = 'blue'
-        self.gametype = 'twoplayer'
-        self.AI1 = RandomAi()
-        self.AI2 = RandomAi()
+        # self.gametype = 'twoplayer'
+        self.AI = RandomAi()
+        # self.AI2 = RandomAi()
         self.gboard = gboard
         self.frame = Frame(master)
         self.frame.pack(fill="both", expand=True)
@@ -26,60 +26,29 @@ class Display(Frame):
             self.player = 'one'
             self.currentcolour = 'blue'
 
-    def view_bots(self, AI1, AI2):
-        print("got here")
-        gameRunning = True
-        while gameRunning == True:
-            while self.player == 'one':
-                line = AI1.play(self.gboard)
-                if not line:
-                    print("no possible moves")
-                    gameRunning = False
-                    break
-                else:
-                    self.update_board(line)
-                    self.canvas.itemconfig(line, fill="black")
-                    self.canvas.itemconfig(line, tags=("taken"))
-                    self.canvas.update_idletasks()
-            while self.player == 'two':
-                line = AI2.play(self.gboard)
-                if not line:
-                    print("no possible moves")
-                    gameRunning = False
-                    break
-                else:
-                    self.update_board(line)
-                    self.canvas.itemconfig(line, fill="black")
-                    self.canvas.itemconfig(line, tags=("taken"))
-                    self.canvas.update_idletasks()
+    def do_bot(self, AI):
+
+        line = AI.play(self.gboard)
+        if not line:
+            print("no possible moves")
+            return None
+        else:
+            self.update_board(line)
+            self.canvas.itemconfig(line, fill="black")
+            self.canvas.itemconfig(line, tags=("taken"))
+            self.canvas.update_idletasks()
 
 
-    def do(self, event, tag, gametype):
-        # print(tag)
-        # print(self.gboard.neighbours(tag))
-        if gametype != 'noplayer':
-            self.update_board(tag)
-        # if gametype == 'noplayer':
-        #     while self.player == 'one':
-        #         line = self.AI.play(self.gboard)
-        #         if not line:
-        #             print("no possible moves")
-        #             return
-        #         self.update_board(line)
-        #         self.canvas.itemconfig(line, fill="black")
-        #         self.canvas.itemconfig(line, tags=("taken"))
-        # if gametype == 'oneplayer' or gametype == 'noplayer':
-        #     while self.player == 'two':
-        #         line = self.AI.play(self.gboard)
-        #         if not line:
-        #             print("no possible moves")
-        #             return
-        #         self.update_board(line)
-        #         self.canvas.itemconfig(line, fill="black")
-        #         self.canvas.itemconfig(line, tags=("taken"))
+
+    def do(self, event, tag):
+        self.update_board(tag)
+        self.canvas.itemconfig("current", fill="black")
+        # this tag for hovering, hover effects only work if "taken" is not present in the list of tags
+        self.canvas.itemconfig("current", tags=("taken"))
 
 
     def update_board(self, tag):
+        print("got here")
         self.gboard.set_value(tag, 1) #fill line on board
         additionalTurn = False
         for n in self.gboard.neighbours(tag):
@@ -104,9 +73,7 @@ class Display(Frame):
                 print('Player Two wins with a score of',
                  score[1], 'to', score[0])
 
-        self.canvas.itemconfig("current", fill="black")
-        # this tag for hovering, hover effects only work if "taken" is not present in the list of tags
-        self.canvas.itemconfig("current", tags=("taken"))
+
 
 
 
@@ -124,9 +91,9 @@ class Display(Frame):
 
     def initUI(self, xdots=5, ydots=5):
         starttag = "startbutton"
-        self.canvas.create_rectangle(130, 130,
-        180, 180, fill="red", tags=starttag)
-        startcallback = lambda event, tag=starttag: self.view_bots(self.AI1, self.AI2)
+        self.canvas.create_rectangle(5, 5,
+        40, 40, fill="red", tags=starttag)
+        startcallback = lambda event, tag=starttag: self.do_bot(self.AI)
         self.canvas.tag_bind(starttag, '<Button-1>', startcallback)
         for i in range(xdots):
             for j in range(ydots):
@@ -139,7 +106,7 @@ class Display(Frame):
                 fill="white", outline="black", tags="horiz" + str(i)+str(j))
 
                 tag = "horiz" + str(i)+str(j)
-                callback = lambda event, tag=tag: self.do(event, tag, self.gametype)
+                callback = lambda event, tag=tag: self.do(event, tag)
                 self.canvas.tag_bind(tag, '<Button-1>', callback)
                 # self.canvas.tag_bind("horiz" + str(i)+str(j), '<Button-1>',
                 # self.do)
@@ -154,7 +121,7 @@ class Display(Frame):
                 fill="white", outline="black", tags="vert" + str(i)+str(j))
 
                 tag = "vert" + str(i)+str(j)
-                callback = lambda event, tag=tag: self.do(event, tag, self.gametype)
+                callback = lambda event, tag=tag: self.do(event, tag)
                 self.canvas.tag_bind(tag, '<Button-1>', callback)
 
                 self.canvas.tag_bind("vert" + str(i)+str(j), "<Enter>", self.hover_on)
