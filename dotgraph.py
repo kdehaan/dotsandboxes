@@ -11,9 +11,11 @@ class Dotgraph():
         self.i = 0
         self.j = 0
         self.filled_tiles = 0
-        self.three_tiles = set()
-        self.two_tiles = set()
-        self.oneorzero_tiles = set()
+        self.safe_lines = set()
+        self.primed_tiles = set()
+        self.set_map = dict() # points to tile in set
+        self.tile_map = dict() # points to set of tile
+        self.set_size = dict()
 
     def add_element(self, key):
         if key in self.elements:
@@ -24,13 +26,140 @@ class Dotgraph():
     def is_element(self, key):
         return key in self.elements
 
+    def create_set(self, key):
+        self.set_size[key] = 1
+        self.set_map[key] = set()
+        self.set_map[key].add(key)
+        self.tile_map[key] = key
+        for border in self.neighbours(key):
+            if border in self.safe_lines:
+                self.safe_lines.remove(border)
+
+    def union_sets(self, key, setname):
+        if key != setname:
+            self.set_map[key] = self.set_map[key] | self.set_map[setname]
+            for item in self.set_map[setname]:
+                self.tile_map[item] = key
+            del self.set_map[setname]
+            self.tile_map[setname] = key
+            self.set_size[key] = self.set_size[key] + self.set_size.pop(setname)
+
+    def in_set(self, key):
+        if key in self.tile_map:
+            return True
+        return False
+
+    def get_set(self, key):
+        if key == None:
+            return None
+        if key not in self.tile_map:
+            return None
+        return self.tile_map[key]
+
+    def clean_set(self, key):
+        parentSet = self.get_set(key)
+        if key == parentSet:
+            self.set_map[key].remove(key)
+            if not self.set_map[key]:
+                del self.set_map[key]
+                del self.set_size[key]
+                return
+            newSet = self.set_map[key].pop()
+            self.set_map[newSet] = self.set_map[key]
+            self.set_map[newSet].add(newSet)
+            for item in self.set_map[newSet]:
+                self.tile_map[item] = newSet
+            self.set_size[newSet] = self.set_size[key] - 1
+            del self.set_size[key]
+            del self.set_map[key]
+
+        else:
+            self.set_map[parentSet].remove(key)
+            self.set_size[parentSet] = self.set_size[parentSet] - 1
+
+        del self.tile_map[key]
+
+
     def set_type(self, key, elemtype):
         self.elemType[key] = elemtype
         if elemtype == "tile":
             self.list_tiles.append(key)
-            self.oneorzero_tiles.add(key)
         else:
             self.list_lines.append(key)
+            self.safe_lines.add(key)
+
+    def empty_set_borders(self, key):
+        foundBorders = 0
+        openBorder = None
+        for item in self.set_map[key]:
+            for border in self.neighbours(item):
+                if self.get_value(border) == 0:
+                    if self.get_set(self.other_tile(item, border)) != key:
+                        openBorder = border
+                        foundBorders = foundBorders + 1
+        if foundBorders == 1:
+            return openBorder
+        else:
+            return None
+
+    def sever_sets(self, key): #key is a border
+        adjacentTiles = list(self.neighbours(key))
+        if len(adjacentTiles) != 2:
+            del adjacentTiles #cleanup
+            return
+        tile1 = adjacentTiles[0]
+        tile2 = adjacentTiles[1]
+        set1 = self.get_set(tile1)
+        set2 = self.get_set(tile2)
+        # print(tile1, tile2, set1, set2)
+        del adjacentTiles #cleanup
+        if set1 != set2:
+            return
+        if set1 not in self.connected_tiles(tile1):
+            newKey = tile1
+            otherKey = tile2
+        else:
+            newKey = tile2
+            otherKey = tile1
+        # print(newKey, otherKey)
+        otherSet = self.get_set(otherKey)
+
+        connectedTiles = self.connected_tiles(newKey)
+        for tile in connectedTiles: #update set mapping
+            self.tile_map[tile] = newKey
+            if tile in self.set_map[otherSet]:
+                self.set_map[otherSet].remove(tile)
+
+        self.set_map[newKey] = connectedTiles
+        changeLen = len(connectedTiles)
+        self.set_size[newKey] = changeLen
+        self.set_size[otherSet] = self.set_size[otherSet] - changeLen
+        if not self.set_map[otherSet]:
+            del self.set_map[otherSet]
+
+
+    def connected_tiles(self, key):
+        tileset = set()
+        tileset.add(key)
+        tempkey = key
+        moreToFind = True
+        while moreToFind:
+            moreToFind = False
+            # print(tempkey, '------')
+            for border in self.neighbours(tempkey):
+                if self.get_value(border) == 0:
+                    othertile = self.other_tile(tempkey, border)
+                    if not self.in_set(othertile):
+                        continue
+                    if (othertile not in tileset) and othertile:
+                        moreToFind = True
+                        tileset.add(othertile)
+                        tempkey = othertile
+                        break
+        return tileset
+
+
+
 
     def other_tile(self, tile, edge):
         for item in self.neighbours(edge):
@@ -68,18 +197,11 @@ class Dotgraph():
     def get_elements(self):
         return set(self.elements.keys())
 
+
     def filled_borders(self, key):
         filled = 0
         for border in self.neighbours(key):
             filled = filled + self.get_value(border)
-        if filled == 2:
-            self.two_tiles.add(key)
-            self.oneorzero_tiles.discard(key)
-        elif filled == 3:
-            self.three_tiles.add(key)
-            self.two_tiles.discard(key)
-        elif filled == 4:
-            self.three_tiles.discard(key)
         return filled
 
 
